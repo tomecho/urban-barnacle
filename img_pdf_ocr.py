@@ -25,4 +25,8 @@ for img in req_image:
             )
     final_text.append(txt)
 
-import pdb; pdb.set_trace()
+# import pdb; pdb.set_trace()
+
+f = open('output_file', 'w')
+for s in final_text:
+    f.write(s.encode('UTF-8'))
