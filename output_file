@@ -1,263 +1,105 @@
-BEGIN PDF OUTPUT
-9/8/2017 OCR on PDF ﬁles using Python | Python Tips
-
-F)
-
-Q
-
-Advertisements
-
-Python Tips
-
-Your daily dose of bite sized python tips
-
-PYTHON
-
-OCR on PDF files using Python
-
-FEBRUARY 25. 2016 | YASOOB | OCR, OCR IN PDF, OPTICAL CHARACTER RECOGNITION, PDF OCR
-
-Hi there folks! You might have heard about OCR using Python. The most famous library out there is tesseract
-which is sponsored by Google. It is very easy to do OCR on an image. The issue arises when you want to do OCR
-over a PDF document.
-
-I am working on a project where I want to input PDF ﬁles, extract text from them and then add the text to the
-database. I had to search a lot before I stumbled over the ﬁnal solution. So without wasting any time, lets begin.
-
-1. Installing Tesseract
-
-It is very easy to install tesseract on various operating systems. For the sake of simplicity I will be using Ubuntu as
-an example. In Ubuntu you simply have to run the following command in the terminal:
-
-sudo apt-get install tesseract-ocr
-
-https://pythontips.com/2016/02/25/ocr—on-pdf—ﬁIes-using-python/ 1/79/8/2017 OCR on PDF ﬁles using Python | Python Tips
-It will install Tesseract along with the support for three languages.
-
-2. Installing PyOCR
-
-Now we need to install the Python bindings for tesseract. Fortunately, there are some pretty nice bindings out there.
-We will be installing a latest one:
-
-pip install git+https://github.com/jflesch/pyocr.git
-
-3. Installing Wand and PIL
-
-We need to install two other dependencies as well before we can move on. First one is Wand. It is the Python
-bindings for Imagemagick. We will be using it for converting PDF ﬁles to images:
-
-pip install wand
-
-We will be using PIL as well because PyOCR needs it. You can take a look at the ofﬁcial docs on how to install it
-on your operating system.
-
-4. Warming up
-
-Let’s start writing our script. First of all, we will be importing the required libraries:
-
-from wand.image import Image
-from PIL import Image as PI
-import pyocr
-
-import pyocr.builders
-
-import io
-
-Note: I imported Image from PIL as PI because otherwise it would have conﬂicted with the Image module from
-wand.image.
-
-5. Get Going
-
-Now we need to get the handle of the OCR library (in our case, tesseract) and the language which will be used by
-pyocr.
-
-https://pythontips.com/2016/02/25/ocr—on-pdf—ﬁIes-using-python/ 2/79/8/2017 OCR on PDF ﬁles using Python | Python Tips
-
-tool
-lang
-
-pyocr.get_available_tools()[0]
-tool.get_available_1anguages()[l]
-
-We used the second language in the t o o l . g et_ava i l a b l e_l a n g u ag e S ( ) because the last time I checked, it
-was English.
-
-Now we need to setup two lists which will be used to hold our images and ﬁnal_text.
-
-||
-l—I
-|_I
-
-req_image
-final_text = []
-
-Next step is to open the PDF ﬁle using wand and convert it to jpeg. Let’s do it!
-
-image_pdf = Image(filename=”./PDF_FILE_NAME”, resolution=300)
-image_jpeg = image_pdf.convert('jpeg')
-
-Note: Replace PDF_FILE_NAME with a valid PDF ﬁle name in the current path.
-
-wand has converted all the separate pages in the PDF into separate image blobs. We can loop over them and
-append them as a blob into the req_image list.
-
-for img in image_jpeg.sequence:
-img_page = Image(image=img)
-req_image.append(img_page.make_blob('jpeg'))
-
-Now we just need to run OCR over the image blobs. It is very easy.
-
-https://pythontips.com/2016/02/25/ocr—on-pdf—ﬁIes-using-python/ 3/79/8/2017 OCR on PDF ﬁles using Python | Python Tips
-
-for img in req_image:
-txt = tool.image_to_string(
-PI.open(io.BytesIO(img)),
-lang=lang,
-builder=pyocr.builders.TextBuilder()
-
-)
-final_text.append(txt)
-
-Now all of the recognized text has been appended in the ﬁnal_text list. You can use it in any way you want. I hope
-this tutorial was helpful for you guys!
-
-If you have any comments and suggestions then do let me know in the comments section below.
-
-Note: As I mentioned in my last post, I am doing a free weekly workshop for women who want to step into
-the world of Python. You can also become a part of it as long as you are interested and can spare some time
-
-on a Saturday or a Sunday (TBD). Just go to this link 1http://g00.gl/f0rms/h97pzDUVrl1, put in your info
-and wait for my email. If you know of anyone else who will beneﬁt from this opportunity then don’t forget to
-
-share it with them as well.
-
-Till next time! 0
-
-Advertisements
-CORSAIR CX550 550W Po...
-
-CORSAIR CX550 550W ATX12V
-80 PLUS BRONZE Certified
-Active PFC Power Supply Fans...
-
-$49.99
-BUY NOW
-
-Deepcool TESSERACT SW...
-
-https://pythontips.com/2016/02/25/ocr—on-pdf—ﬁIes-using-python/ 4/79/8/2017
-
-OCR on PDF ﬁles using Python | Python Tips
-
-8 thoughts on “OCR on PDF files using Python”
-
-1. CRISTI VLAD says:
-This does not work on windows as easily because it’s tricky to get tesseract up and running. Or, i do not have
-
-the
-
-knowledge to make it run .
-
-MARCH 7= 2016 AT 9:42 PM REPLY
-
-0
-
-THIS ONE PERSON says:
-Iran across this on and wanted to try this on Windows as well. Here’s what I did if it helps anybody out
-there.
-
-Step #1
-
-Easiest way to obtain tesseract for Windows is here: https://github.com/UB-Mannheim/tesseract/wiki
-I did this with the tesseract-ocr—setup-3.05.00dev.exe download.
-
-Step #2 Works as described.
-
-pip install git+https://github.com/jﬂesch/pyocrgit
-
-If you get a git not found error. Install git.
-
-https://git-scm.com/download
-
-And then go to System-> Advanced system settings -> Environment Variables and add to the PATH variable
-the location of the git binary. Mine was ‘C:\Program Files\Git\bin’
-
-Leave Environment Variables window open for now.
-Step #3 Works as described
-Step #4 Works as described
-
-Step #5
-
-You need to verify you have TESSDATA_PREFIX in your System Variables window in the Environment
-Variables window. It should lead to the installation directory of Tesseract from step #1.
-
-Mine is C:\Program Files (X86)\Tesseract-OCR\
-
-I had to make one change tesseract.py in pyocr. Even after mapping the value to a PATH variable I couldn’t
-get it call tesseract correctly. I ﬁxed it by changing the TESSERACT_CMD value to what is below
-
-TESSERACT_CMD = os.environ[“TESSDATA_PREFIX”] + ‘tesseract.exe’ if os.name == ‘nt’ else
-‘tesseract’
-
-You should be to run the code from Step #5 after that. I did have to change
-
-https://pythontips.com/2016/02/25/ocr—on-pdf—ﬁIes-using-python/ 5/79/8/2017 OCR on PDF ﬁles using Python | Python Tips
-tool. get_available_languages()[1] because that wasn’t english on my system.
-
-SEPTEMBER 12, 2016 AT 8:07 AM REPLY
-0 DIABYED says:
-
-The TESSERACT_CMD should also include ‘os.sep’, as below:
-TESSERACT_CMD = os.environ[“TESSDATA_PREFIX”] + os.sep + ‘tesseract.exe’ if os.name ==
-‘nt’ else ‘tesseract’
-
-It works properly that way since we get the path as:: ‘C:\\Program Files (x86)\\Tesseract-
-OCR\\tesseract.exe’
-
-Also, for ‘eng’ I guess it is tool.get_available_languages()[0] instead of the 2nd entry in the list. Not
-sure.
-
-Thanks for the wonderful explanation for Windows, life saver! .
-
-SEPTEMBER 21. 2016 AT 4:12 PM
-2. XTIANSIMON says:
-What’s do you think about OCR on PDF forms? dot matrix printed invoices with dates, invoice numbers, line
-items (qty, item, stock #, price) each in designated spaces. Other than the obvious irony that it would be easier
-now to just get a damn xml ﬁle.
-
-JULY 17, 2016 AT 7:31 AM REPLY
-3. STANLEY DENMAN says:
-
-Why did you convert the pdf to an image ﬁle? In my project Ihave the choice of using a tiff or pdf file as the
-source of text to be extracted and stored in a DB. Which would be better-tiff or pdf — as the source?
-
-SEPTEMBER 11. 2016 AT 8:09 PM | REPLY
-4. JEFF says:
-Could you say anything about the database you selected to store the test output in?
-
-OCTOBER 7, 2016 AT 12:34 PM REPLY
-5. SKAUGHT says:
-
-Hi,
-
-I am attempting to get this code to work with various PDFs that I have that have been OCR’d from printed
-documents. I am running on Mac OSX El Capitan with the latest tesseract installed via Homebrew.
-
-I am running it in a Python 2.7.11 environment
-
-My issue is that when I run a PDF document through this procedure it does not generate any text. It is always
-blank.
-
-What might be causing this?
-
-MARCH 8. 2017 AT 1:55 AMI REPLY
-6. PATRICK says:
-Very useful, thank you for taking the time to write this down!
-
-MARCH 12, 2017 AT 6:25 PM REPLY
-
-https://pythontips.com/2016/02/25/ocr-on-pdf-ﬁIes-using-python/ 6/79/8/2017 OCR on PDF ﬁles using Python | Python Tips
-
-@
-
-https://pythontips.com/2016/02/25/ocr-on-pdf-ﬁIes-using-python/ 7/7
+PROPERTY
+ID CASH
+347576 0.84
+71291 76 1 3.00
+207669 32.78
+2945304 0.15
+177770 2.31
+2937103 0.04
+448967 32.40
+270728 40.71
+3466334 57.38
+1061 58.80
+2937734 8.70
+6596106 0.03
+466795 33.47
+503394 1 .00
+3740777 81.53
+3443366 12.20
+PROPERTY
+ID CASH
+3388720 1 .19
+2955011 366.99
+2873033 3.15
+260342 15.00
+629352 17.19
+448814 7.51
+3313843 20.00
+3315632 20.00
+3323972 100.00
+3315072 20.00
+3315664 20.00
+3315886 20.00
+3226857 2.30
+3232744 4.00
+3233756 2.10
+3235340 11 .26
+3238791 8.19
+3239069 8.80
+3242026 3.99
+3242265 2.00
+PROPERTY
+ID CASH
+3245372 4.83
+3191086 6.72
+3191994 4.80
+3194550 7.40
+3196146 8.40
+3197495 8.20
+3197974 5.00
+3198675 4.60
+3467699 0.28
+411387 14.40
+619782 0.84
+4089398 0.08
+417774 121.90
+3389829 6.21
+3725061 0.08
+6879928 11.25
+3885884 21.97
+6802415 10.55
+3709577 6.00
+6876776 11.20
+7108759 0.10
+7284239 29.79
+PROPERTY
+ID CASH
+3562434 12.68
+7038917 11 7. 04
+3731507 0.05
+5519347 0.54
+3776164 4.31
+3777920 1 .50
+68041 74 0.12
+3670370 878.83
+6113565 0.38
+302980 3.08
+315726 1 9.02
+7259343 2.08
+7169991 12.00
+302380 3.16
+324634 1 .02
+7169995 5.00
+71701 96 5.00
+6936332 2.40
+6939197 0.02
+PROPERTY
+ID CASH
+6939427 7.89
+352189 1 67.00
+7129068 90.00
+327407 70.87
+5654873 21.76
+5700617 20.00
+5703621 4.48
+6612883 285.13
+7095482 5.93
+4002036 11 .33
+3691455 2911.12
+7131957 5.00
+7142749 7.74
+4018494 424.60
+5489143 99.90
+7062259 0.26
+69821 64 1 0.00
+7055140 5.99
