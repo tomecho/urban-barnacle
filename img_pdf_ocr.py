@@ -45,7 +45,7 @@ for img in req_image:
         if property_id and cash: # only add line if we have something
             data.append((property_id,cash)) # append final find to data
 
-f = open('output_file', 'w')
+f = open('output_file.csv', 'w')
 f.write('property_id,cash\n')
 for data_pair in data:
     f.write(data_pair[0].encode('UTF-8') + ',' + data_pair[1].encode('UTF-8') + '\n')

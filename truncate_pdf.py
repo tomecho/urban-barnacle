@@ -2,7 +2,10 @@ from PyPDF2 import PdfFileWriter, PdfFileReader
 from os import sys
 in_pdf = PdfFileReader(open(sys.argv[1],'rb'))
 out_pdf = PdfFileWriter()
-for i in range(0,int(sys.argv[2])):
+
+max_page = in_pdf.numPages if sys.argv[2] == 'all' else sys.argv[2]
+
+for i in range(0,max_page):
     page = in_pdf.getPage(i)
     if False:
         # crop header and footer
