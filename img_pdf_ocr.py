@@ -17,8 +17,8 @@ def write_csv(data):
 def write_sqlite(data):
     conn = sqlite3.connect('output.db')
     tbl_name = '[' + sys.argv[1] + ' ' + datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S') + ']'
-    conn.execute('CREATE TABLE '+ tbl_name +' (property_id int , cash real, source_location text);')
-    conn.execute('CREATE INDEX index_cash ON ' + tbl_name + ' (cash);')
+    conn.execute('CREATE TABLE '+ tbl_name +' (property_id int, cash real, source_location text);')
+    conn.execute('CREATE INDEX `index_cash_' + tbl_name + '` ON ' + tbl_name + ' (cash);')
     for part in data:
         conn.execute('INSERT INTO ' + tbl_name + ' VALUES(?,?,?);', map(lambda s: s.encode('UTF-8'),part))
     conn.commit()
