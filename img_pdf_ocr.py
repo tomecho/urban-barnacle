@@ -4,6 +4,25 @@ import pyocr
 import pyocr.builders
 import io
 from os import sys
+import sqlite3
+import datetime
+
+def write_csv(data):
+    f = open('output_file.csv', 'w')
+    f.write('property_id,cash,source_location(file:page:line)\n')
+    for data_pair in data:
+        f.write(','.join([data_pair[0].encode('UTF-8'),data_pair[1].encode('UTF-8'), data_pair[2].encode('UTF-8')]))
+        f.write('\n')
+
+def write_sqlite(data):
+    conn = sqlite3.connect('output.db')
+    tbl_name = '[' + sys.argv[1] + '_' + datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + ']'
+    conn.execute('CREATE TABLE '+ tbl_name +' (property_id int primary, cash real, source_location text);')
+    conn.execute('CREATE INDEX index_cash ON ' + tbl_name + ' (cash);')
+    for part in data:
+        conn.execute('INTERT INTO ' + tbl_name + ' VALUES(?,?,?);', map(lambda s: s.encode('UTF-8'),part))
+    conn.commit()
+    conn.close()
 
 tool = pyocr.get_available_tools()[0]
 lang = filter(lambda l: str(l) == 'eng', tool.get_available_languages())[0]
@@ -34,8 +53,7 @@ for img_index in range(0, len(req_image)):
         # for each line box
         property_id = ''
         cash = ''
-        import pdb; pdb.set_trace
-        source_location = ':'.join([sys.argv[1] + str(img_index+1) + str(lnBx_index+1)])
+        source_location = ':'.join([sys.argv[1], str(img_index+1), str(lnBx_index+1)])
         for Bx in lnBx.word_boxes:
             if Bx.content in ignore_str: break # next line this is a header
             # break down into word boxes, we only have two cols
@@ -49,8 +67,4 @@ for img_index in range(0, len(req_image)):
         if property_id and cash: # only add line if we have something
             data.append((property_id,cash,source_location)) # append final find to data
 
-f = open('output_file.csv', 'w')
-f.write('property_id,cash,source_location(file:page:line)\n')
-for data_pair in data:
-    f.write(','.join([data_pair[0].encode('UTF-8'),data_pair[1].encode('UTF-8'), data_pair[2].encode('UTF-8')]))
-    f.write('\n')
+write_csv(data)
