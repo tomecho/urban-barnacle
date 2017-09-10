@@ -66,5 +66,6 @@ for img_index in range(0, len(req_image)):
                 property_id += Bx.content
         if property_id and cash: # only add line if we have something
             data.append((property_id,cash,source_location)) # append final find to data
+    # TODO at the end of a page we should write to db that way data doesnt get too big
 
 write_sqlite(data)
