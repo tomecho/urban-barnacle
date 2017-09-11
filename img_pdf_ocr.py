@@ -15,7 +15,7 @@ tool = pyocr.get_available_tools()[0]
 lang = filter(lambda l: str(l) == 'eng', tool.get_available_languages())[0]
 tbl_name = '[' + sys.argv[1] + ' ' + datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S') + ']'
 tmp_pdf_filename = '.work.pdf' # represents a workable part of the pdf
-page_chunk_size = 80 # number of pages to work at once
+page_chunk_size = 15 # number of pages to work at once
 
 def create_table():
     conn = sqlite3.connect('output.db')
