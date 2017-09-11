@@ -10,7 +10,7 @@ import datetime
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
 # define some vars ill be useing latter
-ignore_str = ['PROPERTY', 'ID','ID CASH']
+ignore_str = ['PROPERTY', 'ID','ID CASH', 'HD CASH', 'HD', 'CASH']
 tool = pyocr.get_available_tools()[0]
 lang = filter(lambda l: str(l) == 'eng', tool.get_available_languages())[0]
 tbl_name = '[' + sys.argv[1] + ' ' + datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S') + ']'
@@ -27,7 +27,7 @@ def create_table():
 def write_sqlite(data):
     conn = sqlite3.connect('output.db')
     for part in data:
-        conn.execute('INSERT INTO ' + tbl_name + ' VALUES(?,?,?);', map(lambda s: s.encode('UTF-8'),part))
+        conn.execute('INSERT INTO ' + tbl_name + ' VALUES(?,?,?);', part)
     conn.commit()
     conn.close()
 
@@ -48,7 +48,7 @@ def split_pages(image_jpeg):
         req_images.append(img_page.make_blob('jpeg'))
     return req_images
 
-def process_page(img_index, req_images):
+def process_page(img_index, req_images, page_num):
     img = req_images[img_index]
     # single row/line of that page
     lnBxs = tool.image_to_string(
@@ -63,7 +63,7 @@ def process_page(img_index, req_images):
         # for each line box in page
         property_id = ''
         cash = ''
-        source_location = ':'.join([sys.argv[1], str(img_index+1), str(lnBx_index+1)])
+        source_location = ':'.join([sys.argv[1], str(page_num), str(lnBx_index+1)])
         for Bx in lnBx.word_boxes:
             if Bx.content in ignore_str: break # next line this is a header
             # break down into word boxes, we only have two cols
@@ -117,7 +117,7 @@ with open(sys.argv[1],'rb') as _file:
         # for each image of page
         for img_index in range(0, len(req_images)):
             #print_progress_str('Processing pages', float(img_index+1)/len(req_images))
-            process_page(img_index,req_images)
+            process_page(img_index,req_images,start_index+1+img_index)
 print_progress_str('Status', 1.0) # show that it finished
 print '' # finish off progress bar
 
