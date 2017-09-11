@@ -7,6 +7,7 @@ from os import sys
 import os
 import sqlite3
 import datetime
+import gc
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
 # define some vars ill be useing latter
@@ -33,7 +34,8 @@ def write_sqlite(data):
 
 def convert_pdf_to_image(fn):
     #print 'Converting PDF to image'
-    return Image(filename=fn, resolution=300).convert('jpeg')
+    with Image(filename=fn, resolution=300) as img:
+        return img.convert('jpeg')
 
 def print_progress_str(action,pct):
     pct = pct * 100 # should start out as 0 - 1 float
@@ -44,8 +46,8 @@ def split_pages(image_jpeg):
     for img_index in range(0,len(image_jpeg.sequence)):
         img = image_jpeg.sequence[img_index]
         #print_progress_str('Splitting pages', float(img_index+1)/len(image_jpeg.sequence))
-        img_page = Image(image=img)
-        req_images.append(img_page.make_blob('jpeg'))
+        with Image(image=img) as img_page:
+            req_images.append(img_page.make_blob('jpeg'))
     return req_images
 
 def process_page(img_index, req_images, page_num):
@@ -97,6 +99,7 @@ def chunk_pdf(in_pdf, start_page, end_page): # gets 100 pages out of the pdf and
 
     with open(tmp_pdf_filename, 'wb') as outputStream : out_pdf.write(outputStream) # overwrites every time
 
+start_time = datetime.datetime.now()
 print 'Begin process %s' % sys.argv[1]
 create_table() # start out by creating the table
 
@@ -106,6 +109,7 @@ with open(sys.argv[1],'rb') as _file:
     start_index = 0 # start chunk page index
     end_index = 0 # end chunk
     while end_index+1 < in_pdf.numPages:
+        gc.collect() # get rid of any old unreferenced vars
         print_progress_str('Status', (end_index/(in_pdf.numPages-1.0))) # -1.0 forces float math and offset for index at 0
         end_index = start_index + page_chunk_size if start_index + page_chunk_size < in_pdf.numPages else in_pdf.numPages-1
         chunk_pdf(in_pdf, start_index, end_index) # writes to temp_pdf_filename
@@ -120,5 +124,6 @@ with open(sys.argv[1],'rb') as _file:
             process_page(img_index,req_images,start_index+1+img_index)
 print_progress_str('Status', 1.0) # show that it finished
 print '' # finish off progress bar
+print 'Runtime ' + str(datetime.datetime.now()-start_time)
 
 os.remove(tmp_pdf_filename) # remove temp pdf
