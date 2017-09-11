@@ -7,6 +7,12 @@ from os import sys
 import sqlite3
 import datetime
 
+# define some vars ill be useing latter
+ignore_str = ['PROPERTY', 'ID','ID CASH']
+tool = pyocr.get_available_tools()[0]
+lang = filter(lambda l: str(l) == 'eng', tool.get_available_languages())[0]
+tbl_name = '[' + sys.argv[1] + ' ' + datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S') + ']'
+
 def write_csv(data):
     f = open('output_file.csv', 'w')
     f.write('property_id,cash,source_location(file:page:line)\n')
@@ -14,43 +20,51 @@ def write_csv(data):
         f.write(','.join([data_pair[0].encode('UTF-8'),data_pair[1].encode('UTF-8'), data_pair[2].encode('UTF-8')]))
         f.write('\n')
 
-def write_sqlite(data):
+def create_table():
     conn = sqlite3.connect('output.db')
-    tbl_name = '[' + sys.argv[1] + ' ' + datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S') + ']'
     conn.execute('CREATE TABLE '+ tbl_name +' (property_id int, cash real, source_location text);')
     conn.execute('CREATE INDEX `index_cash_' + tbl_name + '` ON ' + tbl_name + ' (cash);')
+    conn.commit()
+    conn.close()
+
+def write_sqlite(data):
+    conn = sqlite3.connect('output.db')
     for part in data:
         conn.execute('INSERT INTO ' + tbl_name + ' VALUES(?,?,?);', map(lambda s: s.encode('UTF-8'),part))
     conn.commit()
     conn.close()
 
-tool = pyocr.get_available_tools()[0]
-lang = filter(lambda l: str(l) == 'eng', tool.get_available_languages())[0]
+def convert_pdf_to_image():
+    print 'Converting PDF to image'
+    return Image(filename=sys.argv[1], resolution=300).convert('jpeg')
 
-req_image = []
+def print_progress_str(action,pct):
+    pct = pct * 100 # should start out as 0 - 1 float
+    print(action + ' ' + str(pct) + '% [' + (u"\u2588"*int(pct)) + (' ' * (100-int(pct))) + ']\r'),
 
-image_pdf = Image(filename=sys.argv[1], resolution=300)
-image_jpeg = image_pdf.convert('jpeg')
+def split_pages(image_jpeg):
+    req_images = []
+    for img_index in range(0,len(image_jpeg.sequence)):
+        img = image_jpeg.sequence[img_index]
+        print_progress_str('Splitting pages', float(img_index+1)/len(image_jpeg.sequence))
+        img_page = Image(image=img)
+        req_images.append(img_page.make_blob('jpeg'))
+    print '' # finish off with a \n to finish progress bar
+    return req_images
 
-for img in image_jpeg.sequence:
-    img_page = Image(image=img)
-    req_image.append(img_page.make_blob('jpeg'))
-
-ignore_str = ['PROPERTY', 'ID','ID CASH']
-data = [] # list of tuples (property id, cash value, record source location)
-
-# for each image of page
-for img_index in range(0, len(req_image)):
-    img = req_image[img_index]
-    # lnBx should be a single column on a single page
+def process_page(img_index, req_images):
+    img = req_images[img_index]
+    # single row/line of that page
     lnBxs = tool.image_to_string(
             PI.open(io.BytesIO(img)),
             lang=lang,
             builder=pyocr.builders.LineBoxBuilder()
             )
+
+    data = [] # list of tuples (property id, cash value, record source location)
     for lnBx_index in range(0,len(lnBxs)):
         lnBx = lnBxs[lnBx_index]
-        # for each line box
+        # for each line box in page
         property_id = ''
         cash = ''
         source_location = ':'.join([sys.argv[1], str(img_index+1), str(lnBx_index+1)])
@@ -66,6 +80,17 @@ for img_index in range(0, len(req_image)):
                 property_id += Bx.content
         if property_id and cash: # only add line if we have something
             data.append((property_id,cash,source_location)) # append final find to data
-    # TODO at the end of a page we should write to db that way data doesnt get too big
+    # at the end of a page we write to db that way data doesnt get too big
+    write_sqlite(data)
 
-write_sqlite(data)
+print 'Begin process %s' % sys.argv[1]
+image_jpeg = convert_pdf_to_image()
+req_images = split_pages(image_jpeg)
+create_table()
+
+# for each image of page
+for img_index in range(0, len(req_images)):
+    print_progress_str('Processing pages', float(img_index+1)/len(req_images))
+    process_page(img_index,req_images)
+
+print '' # finish off progress bar
