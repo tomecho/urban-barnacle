@@ -53,11 +53,13 @@ def split_pages(image_jpeg):
 def process_page(img_index, req_images, page_num):
     img = req_images[img_index]
     # single row/line of that page
+    PI_img = PI.open(io.BytesIO(img))
     lnBxs = tool.image_to_string(
-            PI.open(io.BytesIO(img)),
+            PI_img,
             lang=lang,
             builder=pyocr.builders.LineBoxBuilder()
             )
+    PI_img.close()
 
     data = [] # list of tuples (property id, cash value, record source location)
     for lnBx_index in range(0,len(lnBxs)):
