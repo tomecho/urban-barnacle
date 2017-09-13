@@ -117,8 +117,9 @@ with open(sys.argv[1],'rb') as _file:
         chunk_pdf(in_pdf, start_index, end_index) # writes to temp_pdf_filename
         start_index = end_index+1 # page after last page we included
 
-        image_jpeg = convert_pdf_to_image(tmp_pdf_filename)
-        req_images = split_pages(image_jpeg)
+        req_images = []
+        with convert_pdf_to_image(tmp_pdf_filename) as image_jpeg:
+            req_images = split_pages(image_jpeg)
 
         # for each image of page
         for img_index in range(0, len(req_images)):
