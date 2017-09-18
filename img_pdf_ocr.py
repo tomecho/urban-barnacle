@@ -16,7 +16,7 @@ tool = pyocr.get_available_tools()[0]
 lang = filter(lambda l: str(l) == 'eng', tool.get_available_languages())[0]
 tbl_name = '[' + sys.argv[1] + ' ' + datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S') + ']'
 tmp_pdf_filename = '.work.pdf' # represents a workable part of the pdf
-page_chunk_size = 15 # number of pages to work at once
+page_chunk_size = 80 # number of pages to work at once
 
 def create_table():
     conn = sqlite3.connect('output.db')
@@ -115,7 +115,6 @@ with open(sys.argv[1],'rb') as _file:
         print_progress_str('Status', (end_index/(in_pdf.numPages-1.0))) # -1.0 forces float math and offset for index at 0
         end_index = start_index + page_chunk_size if start_index + page_chunk_size < in_pdf.numPages else in_pdf.numPages-1
         chunk_pdf(in_pdf, start_index, end_index) # writes to temp_pdf_filename
-        start_index = end_index+1 # page after last page we included
 
         req_images = []
         with convert_pdf_to_image(tmp_pdf_filename) as image_jpeg:
@@ -125,6 +124,7 @@ with open(sys.argv[1],'rb') as _file:
         for img_index in range(0, len(req_images)):
             #print_progress_str('Processing pages', float(img_index+1)/len(req_images))
             process_page(img_index,req_images,start_index+1+img_index)
+        start_index = end_index+1 # page after last page we included
 print_progress_str('Status', 1.0) # show that it finished
 print '' # finish off progress bar
 print 'Runtime ' + str(datetime.datetime.now()-start_time)

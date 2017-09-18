@@ -3,3 +3,4 @@ output_file
 *.csv
 *.db
 *.tar
+output.db.old
