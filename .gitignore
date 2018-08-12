@@ -4,3 +4,4 @@ output_file
 *.db
 *.tar
 output.db.old
+geckodriver.log

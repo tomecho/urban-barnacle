@@ -10,6 +10,7 @@ name = "pypi"
 wand = "*"
 pillow = "*"
 pyocr = "*"
+selenium = "*"
 
 [requires]
 python_version = "2.7"
