@@ -11,6 +11,7 @@ wand = "*"
 pillow = "*"
 pyocr = "*"
 selenium = "*"
+selenium-requests = "*"
 
 [requires]
 python_version = "2.7"
