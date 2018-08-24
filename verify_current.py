@@ -3,12 +3,21 @@ from selenium.webdriver.firefox.options import Options
 import sqlite3
 import sys
 
-def create_table(property_table_name):
-    tbl_name = '[{property_table_name} withpeople]'.format(property_table_name=property_table_name)
+def choose_table():
     with sqlite3.connect('output.db') as conn:
-        conn.execute('CREATE TABLE '+ tbl_name +' (property_id int primary key, cash real, source_location text, name text, address_street text, address_city text, address_state text, address_zip text);')
+        cursor = conn.execute("select name from sqlite_master where type = 'table'")
+        rows = cursor.fetchall()
+    tbl_names = map(lambda x:
+        x[0]
+    , rows)
+    tbl_index = raw_input('select a table to translate (by zero based index):\n' + reduce(lambda x,y: '{}\n{}'.format(x, y) + '\n', tbl_names))
+    return tbl_names[int(tbl_index)]
+
+def create_table():
+    with sqlite3.connect('output.db') as conn:
+        conn.execute('''CREATE TABLE {} (property_id int primary key, cash real, source_location text, name text, 
+                address_street text, address_city text, address_state text, address_zip text);'''.format(tbl_name))
         conn.commit()
-    return tbl_name
 
 def write_sqlite(result_array):
     with sqlite3.connect('output.db') as conn:
@@ -36,10 +45,12 @@ def translate_properties(web, properties):
             search_result_rows
         )
 
+ocr_tbl_name = choose_table()
+tbl_name = '[{} properties]'.format(ocr_tbl_name)
 propertyId = sys.argv[1]
 # set up the browser
 options = Options()
 options.set_headless(headless=True)
 with webdriver.Firefox(firefox_options=options) as web:
     web.get('http://ctbiglist.com')
-    translate_properties(web, [propertyId])
+    translate_properties(web, [{'id': propertyId, 'cash': 0, 'source_location': ''}])
