@@ -43,6 +43,26 @@ def throttle_translation(time_diff, request_count = 1):
         print 'going to fast, sleeping'
         time.sleep(seconds_to_sleep)
 
+def translate_property(web, ocr_property):
+    web.find_element_by_id('PropertyID').send_keys(ocr_property[0])
+    web.find_element_by_xpath("//input[@name='Submit']").click()
+
+    search_result_rows = web.find_elements_by_xpath("(//form[@action='UP_Claim.asp']//tbody)[1]/tr[position() > 1]")
+    result_array = map(
+        lambda row:
+        [
+            ocr_property[0], # property id
+            ocr_property[1], # cash
+            ocr_property[2], # source location
+            row.find_element_by_xpath('td[3]').text, # name
+            row.find_element_by_xpath('td[4]').text, # street 
+            row.find_element_by_xpath('td[5]').text, # city
+            row.find_element_by_xpath('td[6]').text, # state
+            row.find_element_by_xpath('td[7]').text, # zip
+        ], 
+        search_result_rows
+    )
+
 def translate_properties(web, ocr_properties):
     i = 0
     property_count = len(ocr_properties)
@@ -50,24 +70,14 @@ def translate_properties(web, ocr_properties):
         i = i + 1
         print 'translating {} / {}'.format(i, property_count)
         start_time = time.time()
-        web.find_element_by_id('PropertyID').send_keys(ocr_property[0])
-        web.find_element_by_xpath("//input[@name='Submit']").click()
+        try:
+            translate_property(web, ocr_property)
+        except:
+            # something went wrong
+            print 'something went wrong reloading page and tryig again'
+            web.get('http://ctbiglist.com')
+            translate_property(web, ocr_property)
 
-        search_result_rows = web.find_elements_by_xpath("(//form[@action='UP_Claim.asp']//tbody)[1]/tr[position() > 1]")
-        result_array = map(
-            lambda row:
-            [
-                ocr_property[0], # property id
-                ocr_property[1], # cash
-                ocr_property[2], # source location
-                row.find_element_by_xpath('td[3]').text, # name
-                row.find_element_by_xpath('td[4]').text, # street 
-                row.find_element_by_xpath('td[5]').text, # city
-                row.find_element_by_xpath('td[6]').text, # state
-                row.find_element_by_xpath('td[7]').text, # zip
-            ], 
-            search_result_rows
-        )
         end_time = time.time()
         throttle_translation(end_time - start_time, 2)
 
