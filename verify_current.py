@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 import sqlite3
 import sys
+import time
 
 def choose_table():
     with sqlite3.connect('output.db') as conn:
@@ -24,8 +25,16 @@ def write_sqlite(result_array):
         conn.execute('INSERT INTO ' + tbl_name + ' VALUES(?,?,?,?,?,?,?,?);', result_array)
         conn.commit()
 
+def throttle_translation(time_diff, request_count = 1):
+    actual_rate = request_count / time_diff
+    # actual rate was greater than target rate then sleep
+    if (actual_rate > target_rate):
+        target_seconds_per_request = request_count / target_rate
+        time.sleep(target_seconds_per_request - time_diff)
+
 def translate_properties(web, properties):
     for _property in properties:
+        start_time = time.time()
         web.find_element_by_id('PropertyID').send_keys(propertyId)
         web.find_element_by_xpath("//input[@name='Submit']").click()
 
@@ -44,7 +53,10 @@ def translate_properties(web, properties):
             ], 
             search_result_rows
         )
+        end_time = time.time()
+        sys.sleep(end_time - start_time)
 
+target_rate = 2.0 # 2 requests a second
 ocr_tbl_name = choose_table()
 tbl_name = '[{} properties]'.format(ocr_tbl_name)
 propertyId = sys.argv[1]
