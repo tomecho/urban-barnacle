@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 import sqlite3
+import datetime
 import sys
 import time
 
@@ -26,10 +27,11 @@ def write_sqlite(result_array):
         conn.commit()
 
 def read_ocr_table(tbl_name):
+    print 'reading from database'
     with sqlite3.connect('output.db') as conn:
         cursor = conn.execute("select property_id, cash, source_location from [{}] where cast(cash as real) > 10000 order by cash desc".format(tbl_name))
-        import pdb; pdb.set_trace()
         return cursor.fetchall()
+    print 'finished reading from database'
 
 def throttle_translation(time_diff, request_count = 1):
     actual_rate = request_count / time_diff
@@ -38,6 +40,7 @@ def throttle_translation(time_diff, request_count = 1):
         target_seconds_per_request = 1 / target_rate
         actual_seconds_per_request = 1 / actual_rate
         seconds_to_sleep = (target_seconds_per_request - actual_seconds_per_request) * request_count
+        print 'going to fast, sleeping'
         time.sleep(seconds_to_sleep)
 
 def translate_properties(web, ocr_properties):
@@ -47,7 +50,7 @@ def translate_properties(web, ocr_properties):
         i = i + 1
         print 'translating {} / {}'.format(i, property_count)
         start_time = time.time()
-        web.find_element_by_id('PropertyID').send_keys(propertyId)
+        web.find_element_by_id('PropertyID').send_keys(ocr_property[0])
         web.find_element_by_xpath("//input[@name='Submit']").click()
 
         search_result_rows = web.find_elements_by_xpath("(//form[@action='UP_Claim.asp']//tbody)[1]/tr[position() > 1]")
@@ -71,7 +74,7 @@ def translate_properties(web, ocr_properties):
 target_rate = 2.0 # 2 requests a second
 ocr_tbl_name = choose_table()
 ocr_properties = read_ocr_table(ocr_tbl_name)
-tbl_name = '{} properties'.format(ocr_tbl_name)
+tbl_name = '{} properties translated {}'.format(ocr_tbl_name, datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S'))
 create_table()
 
 # set up the browser
