@@ -22,6 +22,8 @@ def create_table():
         conn.commit()
 
 def write_data(result_array):
+    if (len(result_array) is not 8):
+        print 'cannot write partial data to db ', result_array
     with sqlite3.connect('output.db') as conn:
         conn.execute('INSERT INTO [' + tbl_name + '] VALUES(?,?,?,?,?,?,?,?);', result_array)
         conn.commit()
@@ -48,9 +50,8 @@ def translate_property(web, ocr_property):
     web.find_element_by_xpath("//input[@name='Submit']").click()
 
     search_result_rows = web.find_elements_by_xpath("(//form[@action='UP_Claim.asp']//tbody)[1]/tr[position() > 1]")
-    result_array = map(
-        lambda row:
-        [
+    for row in search_result_rows:
+        entry = [
             ocr_property[0], # property id
             ocr_property[1], # cash
             ocr_property[2], # source location
@@ -59,10 +60,8 @@ def translate_property(web, ocr_property):
             row.find_element_by_xpath('td[5]').text, # city
             row.find_element_by_xpath('td[6]').text, # state
             row.find_element_by_xpath('td[7]').text, # zip
-        ], 
-        search_result_rows
-    )
-    write_data(result_array)
+        ] 
+        write_data(result_array)
 
 def translate_properties(web, ocr_properties):
     i = 0
@@ -75,7 +74,7 @@ def translate_properties(web, ocr_properties):
             translate_property(web, ocr_property)
         except:
             # something went wrong
-            print 'something went wrong reloading page and tryig again'
+            print 'something went wrong reloading page and trying again'
             import pdb; pdb.set_trace()
             web.get('http://ctbiglist.com')
             translate_property(web, ocr_property)
