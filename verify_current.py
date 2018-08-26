@@ -16,19 +16,20 @@ def choose_table():
 
 def create_table():
     with sqlite3.connect('output.db') as conn:
-        conn.execute('''CREATE TABLE {} (property_id int primary key, cash real, source_location text, name text, 
+        conn.execute('''CREATE TABLE [{}] (property_id int primary key, cash real, source_location text, name text, 
                 address_street text, address_city text, address_state text, address_zip text);'''.format(tbl_name))
         conn.commit()
 
 def write_sqlite(result_array):
     with sqlite3.connect('output.db') as conn:
-        conn.execute('INSERT INTO ' + tbl_name + ' VALUES(?,?,?,?,?,?,?,?);', result_array)
+        conn.execute('INSERT INTO [' + tbl_name + '] VALUES(?,?,?,?,?,?,?,?);', result_array)
         conn.commit()
 
 def read_ocr_table(tbl_name):
     with sqlite3.connect('output.db') as conn:
-        cursor = conn.execute("select property_id, cash, source_location from {} where cast(cash as real) > 10000 order by cash desc".format(tbl_name))
-        cursor.fetchall()
+        cursor = conn.execute("select property_id, cash, source_location from [{}] where cast(cash as real) > 10000 order by cash desc".format(tbl_name))
+        import pdb; pdb.set_trace()
+        return cursor.fetchall()
 
 def throttle_translation(time_diff, request_count = 1):
     actual_rate = request_count / time_diff
@@ -40,7 +41,11 @@ def throttle_translation(time_diff, request_count = 1):
         time.sleep(seconds_to_sleep)
 
 def translate_properties(web, ocr_properties):
+    i = 0
+    property_count = len(ocr_properties)
     for ocr_property in ocr_properties:
+        i = i + 1
+        print 'translating {} / {}'.format(i, property_count)
         start_time = time.time()
         web.find_element_by_id('PropertyID').send_keys(propertyId)
         web.find_element_by_xpath("//input[@name='Submit']").click()
@@ -66,7 +71,8 @@ def translate_properties(web, ocr_properties):
 target_rate = 2.0 # 2 requests a second
 ocr_tbl_name = choose_table()
 ocr_properties = read_ocr_table(ocr_tbl_name)
-tbl_name = '[{} properties]'.format(ocr_tbl_name)
+tbl_name = '{} properties'.format(ocr_tbl_name)
+create_table()
 
 # set up the browser
 options = Options()
