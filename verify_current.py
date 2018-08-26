@@ -17,7 +17,7 @@ def choose_table():
 
 def create_table():
     with sqlite3.connect('output.db') as conn:
-        conn.execute('''CREATE TABLE [{}] (property_id int primary key, cash real, source_location text, name text, 
+        conn.execute('''CREATE TABLE [{}] (id int primary key, property_id int, cash real, source_location text, name text, 
                 address_street text, address_city text, address_state text, address_zip text);'''.format(tbl_name))
         conn.commit()
 
@@ -25,7 +25,7 @@ def write_data(result_array):
     if (len(result_array) is not 8):
         print 'cannot write partial data to db ', result_array
     with sqlite3.connect('output.db') as conn:
-        conn.execute('INSERT INTO [' + tbl_name + '] VALUES(?,?,?,?,?,?,?,?);', result_array)
+        conn.execute('INSERT INTO [' + tbl_name + '](property_id, cash, source_location, name, address_street, address_city, address_state, address_zip) VALUES(?,?,?,?,?,?,?,?);', result_array)
         conn.commit()
 
 def read_ocr_table(tbl_name):
@@ -61,7 +61,7 @@ def translate_property(web, ocr_property):
             row.find_element_by_xpath('td[6]').text, # state
             row.find_element_by_xpath('td[7]').text, # zip
         ] 
-        write_data(result_array)
+        write_data(entry)
 
 def translate_properties(web, ocr_properties):
     i = 0
@@ -72,9 +72,9 @@ def translate_properties(web, ocr_properties):
         start_time = time.time()
         try:
             translate_property(web, ocr_property)
-        except:
+        except Exception as e:
             # something went wrong
-            print 'something went wrong reloading page and trying again'
+            print 'something went wrong reloading page and trying again propertyId ', ocr_property[0], str(e)
             import pdb; pdb.set_trace()
             web.get('http://ctbiglist.com')
             translate_property(web, ocr_property)
