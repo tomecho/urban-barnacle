@@ -21,7 +21,7 @@ def create_table():
                 address_street text, address_city text, address_state text, address_zip text);'''.format(tbl_name))
         conn.commit()
 
-def write_sqlite(result_array):
+def write_data(result_array):
     with sqlite3.connect('output.db') as conn:
         conn.execute('INSERT INTO [' + tbl_name + '] VALUES(?,?,?,?,?,?,?,?);', result_array)
         conn.commit()
@@ -34,13 +34,11 @@ def read_ocr_table(tbl_name):
     print 'finished reading from database'
 
 def throttle_translation(time_diff, request_count = 1):
-    actual_rate = request_count / time_diff
+    actual_rate = time_diff / request_count # time over count
     # actual rate was greater than target rate then sleep
     if (actual_rate > target_rate):
-        target_seconds_per_request = 1 / target_rate
-        actual_seconds_per_request = 1 / actual_rate
-        seconds_to_sleep = (target_seconds_per_request - actual_seconds_per_request) * request_count
-        print 'going to fast, sleeping'
+        seconds_to_sleep = ((target_rate / request_count) - actual_rate) * request_count
+        print 'going too fast, sleeping for ', seconds_to_sleep
         time.sleep(seconds_to_sleep)
 
 def translate_property(web, ocr_property):
@@ -64,6 +62,7 @@ def translate_property(web, ocr_property):
         ], 
         search_result_rows
     )
+    write_data(result_array)
 
 def translate_properties(web, ocr_properties):
     i = 0
@@ -84,7 +83,7 @@ def translate_properties(web, ocr_properties):
         end_time = time.time()
         throttle_translation(end_time - start_time, 2)
 
-target_rate = 0.2 # 1/5 requests a second
+target_rate = 5 # 5 seconds a request 
 ocr_tbl_name = choose_table()
 ocr_properties = read_ocr_table(ocr_tbl_name)
 tbl_name = '{} properties translated {}'.format(ocr_tbl_name, datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S'))
