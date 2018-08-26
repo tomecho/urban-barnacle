@@ -44,7 +44,9 @@ def throttle_translation(time_diff, request_count = 1):
         time.sleep(seconds_to_sleep)
 
 def translate_property(web, ocr_property):
-    web.find_element_by_id('PropertyID').send_keys(ocr_property[0])
+    property_id_field = web.find_element_by_id('PropertyID')
+    property_id_field.clear()
+    property_id_field.send_keys(ocr_property[0])
     web.find_element_by_xpath("//input[@name='Submit']").click()
 
     search_result_rows = web.find_elements_by_xpath("(//form[@action='UP_Claim.asp']//tbody)[1]/tr[position() > 1]")
@@ -75,13 +77,14 @@ def translate_properties(web, ocr_properties):
         except:
             # something went wrong
             print 'something went wrong reloading page and tryig again'
+            import pdb; pdb.set_trace()
             web.get('http://ctbiglist.com')
             translate_property(web, ocr_property)
 
         end_time = time.time()
         throttle_translation(end_time - start_time, 2)
 
-target_rate = 2.0 # 2 requests a second
+target_rate = 0.2 # 1/5 requests a second
 ocr_tbl_name = choose_table()
 ocr_properties = read_ocr_table(ocr_tbl_name)
 tbl_name = '{} properties translated {}'.format(ocr_tbl_name, datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S'))
