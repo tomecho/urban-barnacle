@@ -25,6 +25,11 @@ def write_sqlite(result_array):
         conn.execute('INSERT INTO ' + tbl_name + ' VALUES(?,?,?,?,?,?,?,?);', result_array)
         conn.commit()
 
+def read_ocr_table(tbl_name):
+    with sqlite3.connect('output.db') as conn:
+        cursor = conn.execute("select property_id, cash, source_location from {} where cast(cash as real) > 10000 order by cash desc".format(tbl_name))
+        cursor.fetchall()
+
 def throttle_translation(time_diff, request_count = 1):
     actual_rate = request_count / time_diff
     # actual rate was greater than target rate then sleep
@@ -34,8 +39,8 @@ def throttle_translation(time_diff, request_count = 1):
         seconds_to_sleep = (target_seconds_per_request - actual_seconds_per_request) * request_count
         time.sleep(seconds_to_sleep)
 
-def translate_properties(web, properties):
-    for _property in properties:
+def translate_properties(web, ocr_properties):
+    for ocr_property in ocr_properties:
         start_time = time.time()
         web.find_element_by_id('PropertyID').send_keys(propertyId)
         web.find_element_by_xpath("//input[@name='Submit']").click()
@@ -44,27 +49,29 @@ def translate_properties(web, properties):
         result_array = map(
             lambda row:
             [
-                _property['id'],
-                _property['cash'],
-                _property['source_location'],
-                row.find_element_by_xpath('td[3]').text,
-                row.find_element_by_xpath('td[4]').text,
-                row.find_element_by_xpath('td[5]').text,
-                row.find_element_by_xpath('td[6]').text,
-                row.find_element_by_xpath('td[7]').text,
+                ocr_property[0], # property id
+                ocr_property[1], # cash
+                ocr_property[2], # source location
+                row.find_element_by_xpath('td[3]').text, # name
+                row.find_element_by_xpath('td[4]').text, # street 
+                row.find_element_by_xpath('td[5]').text, # city
+                row.find_element_by_xpath('td[6]').text, # state
+                row.find_element_by_xpath('td[7]').text, # zip
             ], 
             search_result_rows
         )
         end_time = time.time()
-        sys.sleep(end_time - start_time)
+        throttle_translation(end_time - start_time, 2)
 
 target_rate = 2.0 # 2 requests a second
 ocr_tbl_name = choose_table()
+ocr_properties = read_ocr_table(ocr_tbl_name)
 tbl_name = '[{} properties]'.format(ocr_tbl_name)
-propertyId = sys.argv[1]
+
 # set up the browser
 options = Options()
 options.set_headless(headless=True)
+
 with webdriver.Firefox(firefox_options=options) as web:
     web.get('http://ctbiglist.com')
-    translate_properties(web, [{'id': propertyId, 'cash': 0, 'source_location': ''}])
+    translate_properties(web, ocr_properties)
