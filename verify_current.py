@@ -29,8 +29,10 @@ def throttle_translation(time_diff, request_count = 1):
     actual_rate = request_count / time_diff
     # actual rate was greater than target rate then sleep
     if (actual_rate > target_rate):
-        target_seconds_per_request = request_count / target_rate
-        time.sleep(target_seconds_per_request - time_diff)
+        target_seconds_per_request = 1 / target_rate
+        actual_seconds_per_request = 1 / actual_rate
+        seconds_to_sleep = (target_seconds_per_request - actual_seconds_per_request) * request_count
+        time.sleep(seconds_to_sleep)
 
 def translate_properties(web, properties):
     for _property in properties:
