@@ -37,8 +37,8 @@ def read_ocr_table(tbl_name):
 
 def throttle_translation(time_diff, request_count = 1):
     actual_rate = time_diff / request_count # time over count
-    # actual rate was greater than target rate then sleep
-    if (actual_rate > target_rate):
+    # actual rate was less than target rate then sleep
+    if (actual_rate < target_rate):
         seconds_to_sleep = ((target_rate / request_count) - actual_rate) * request_count
         print 'going too fast, sleeping for ', seconds_to_sleep
         time.sleep(seconds_to_sleep)
@@ -75,7 +75,6 @@ def translate_properties(web, ocr_properties):
         except Exception as e:
             # something went wrong
             print 'something went wrong reloading page and trying again propertyId ', ocr_property[0], str(e)
-            import pdb; pdb.set_trace()
             web.get('http://ctbiglist.com')
             translate_property(web, ocr_property)
 
