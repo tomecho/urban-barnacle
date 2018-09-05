@@ -29,7 +29,7 @@ def write_data(result_array):
         conn.commit()
 
 def read_ocr_table(tbl_name):
-    print 'reading from database'
+    print 'reading from database {}'.format(tbl_name)
     with sqlite3.connect('output.db') as conn:
         cursor = conn.execute("select property_id, cash, source_location from [{}] order by cash desc".format(tbl_name))
         return cursor.fetchall()
