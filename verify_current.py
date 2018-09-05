@@ -17,7 +17,7 @@ def choose_table():
 
 def create_table():
     with sqlite3.connect('output.db') as conn:
-        conn.execute('''CREATE TABLE [{}] (id int primary key, property_id int, cash real, source_location text, name text, 
+        conn.execute('''CREATE TABLE [{}] (property_id int, cash real, source_location text, name text, 
                 address_street text, address_city text, address_state text, address_zip text);'''.format(tbl_name))
         conn.commit()
 
@@ -31,9 +31,8 @@ def write_data(result_array):
 def read_ocr_table(tbl_name):
     print 'reading from database'
     with sqlite3.connect('output.db') as conn:
-        cursor = conn.execute("select property_id, cash, source_location from [{}] where cast(cash as real) > 10000 order by cash desc".format(tbl_name))
+        cursor = conn.execute("select property_id, cash, source_location from [{}] order by cash desc".format(tbl_name))
         return cursor.fetchall()
-    print 'finished reading from database'
 
 def throttle_translation(time_diff, request_count = 1):
     actual_rate = time_diff / request_count # time over count
@@ -42,6 +41,10 @@ def throttle_translation(time_diff, request_count = 1):
         seconds_to_sleep = ((target_rate / request_count) - actual_rate) * request_count
         print 'going too fast, sleeping for ', seconds_to_sleep
         time.sleep(seconds_to_sleep)
+
+def print_progress_str(action,pct):
+    pct = pct * 100 # should start out as 0 - 1 float
+    print action + ' ' + str(pct) + '% [' + (u"\u2588"*int(pct)) + (' ' * (100-int(pct))) + ']' + ' ' * 20 +'\r',
 
 def translate_property(web, ocr_property):
     property_id_field = web.find_element_by_id('PropertyID')
@@ -68,7 +71,7 @@ def translate_properties(web, ocr_properties):
     property_count = len(ocr_properties)
     for ocr_property in ocr_properties:
         i = i + 1
-        print 'translating {} / {}'.format(i, property_count)
+        print_progress_str('translating {} / {}'.format(i, property_count), float(i) / property_count)
         start_time = time.time()
         try:
             translate_property(web, ocr_property)
