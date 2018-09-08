@@ -39,8 +39,9 @@ def throttle_translation(time_diff, request_count = 1):
     # actual rate was less than target rate then sleep
     if (actual_rate < target_rate):
         seconds_to_sleep = ((target_rate / request_count) - actual_rate) * request_count
-        print 'going too fast, sleeping for ', seconds_to_sleep
-        time.sleep(seconds_to_sleep)
+        # print 'going too fast, sleeping for ', seconds_to_sleep
+        if (seconds_to_sleep > 0):
+            time.sleep(seconds_to_sleep)
 
 def print_progress_str(action,pct):
     pct = pct * 100 # should start out as 0 - 1 float
@@ -77,12 +78,11 @@ def translate_properties(web, ocr_properties):
             translate_property(web, ocr_property)
         except Exception as e:
             # something went wrong
-            print 'something went wrong reloading page and trying again propertyId ', ocr_property[0], str(e)
+            print 'skipping propertyId ', ocr_property[0], str(e)
             web.get('http://ctbiglist.com')
-            translate_property(web, ocr_property)
 
         end_time = time.time()
-        throttle_translation(end_time - start_time, 2)
+        throttle_translation(end_time - start_time, 1)
 
 target_rate = 5 # 5 seconds a request 
 ocr_tbl_name = choose_table()
