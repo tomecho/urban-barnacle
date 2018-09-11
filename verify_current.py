@@ -31,7 +31,7 @@ def write_data(result_array):
 def read_ocr_table(tbl_name):
     print 'reading from database {}'.format(tbl_name)
     with sqlite3.connect('output.db') as conn:
-        cursor = conn.execute("select property_id, cash, source_location from [{}] order by cash desc".format(tbl_name))
+        cursor = conn.execute("select property_id, cash, source_location from [{}] where cast(cash as real) > 1000".format(tbl_name))
         return cursor.fetchall()
 
 def throttle_translation(time_diff, request_count = 1):
@@ -84,7 +84,7 @@ def translate_properties(web, ocr_properties):
         end_time = time.time()
         throttle_translation(end_time - start_time, 1)
 
-target_rate = 5 # 5 seconds a request 
+target_rate = 3 # 3 seconds a request 
 ocr_tbl_name = choose_table()
 ocr_properties = read_ocr_table(ocr_tbl_name)
 tbl_name = '{} properties translated {}'.format(ocr_tbl_name, datetime.datetime.now().strftime('%Y:%m:%d %H:%M:%S'))
