@@ -80,7 +80,7 @@ def translate_properties(web, ocr_properties):
         except Exception as e:
             # something went wrong
             print 'skipping propertyId ', ocr_property[0], str(e)
-            web.get('http://ctbiglist.com')
+            web.get(argv[1])
 
         end_time = time.time()
         throttle_translation(end_time - start_time, 1)
