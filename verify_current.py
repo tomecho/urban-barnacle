@@ -1,4 +1,5 @@
 from selenium import webdriver
+from sys import argv
 from selenium.webdriver.firefox.options import Options
 import sqlite3
 import datetime
@@ -95,5 +96,5 @@ options = Options()
 options.set_headless(headless=True)
 
 with webdriver.Firefox(firefox_options=options) as web:
-    web.get('http://ctbiglist.com')
+    web.get(argv[1])
     translate_properties(web, ocr_properties)
