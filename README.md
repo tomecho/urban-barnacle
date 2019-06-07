@@ -1,5 +1,5 @@
 # Urban-Barnacle
-It's a simple OCR project with a 4 step process
+It's a multistep OCR project 
 
 1. truncate_pdf.py - cuts out any excess in each page of the pdf, producing a minimal pdf
 2. img_pdf_ocr.py - visualizes the truncated pdf and inserts findings into db
