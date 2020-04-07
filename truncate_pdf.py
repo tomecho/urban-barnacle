@@ -1,5 +1,8 @@
+# python script.py inputfilename.pdf [all|numPages] outputfilename.pdf
+
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from os import sys
+
 in_pdf = PdfFileReader(open(sys.argv[1],'rb'))
 out_pdf = PdfFileWriter()
 
