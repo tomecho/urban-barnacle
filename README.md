@@ -9,7 +9,7 @@ It's a multistep OCR project
 ## Running instructions 
 1. build docker image
 2. run docker image `docker run -itv /local_docs:/docs tomecho/urban-barnacle pipenv run bash -c "pipenv install; python2 SCRIPT ARGS"`
-3. recover files from 
+3. recover files from container 
     * `docker cp container:/app/output.db /root/output.db`
 
 ## Performance considerations
