@@ -9,3 +9,10 @@ It's a multistep OCR project
 ## Running instructions 
 1. build docker image
 2. run docker image `docker run -itv /local_docs:/docs tomecho/urban-barnacle pipenv run bash -c "pipenv install; python2 SCRIPT ARGS"`
+3. recover files from 
+    * `docker cp container:/app/output.db /root/output.db`
+
+## Performance considerations
+* i/o and cpu heavy, ram not so much
+* 2 vCores and 4gb of ram will result in process crashing
+* past 4 vCores it doesn't seem to effect anything, there isn't much going on in parallel
