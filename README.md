@@ -12,7 +12,12 @@ It's a multistep OCR project
 3. recover files from container 
     * `docker cp container:/app/output.db /root/output.db`
 
+## Misc helper scripts
+1. normalize_source_location.py - when source pdf is broken down into smaller (50000 page) chunks before processing the pages are wrong from the source pdf, this corrects them.
+
 ## Performance considerations
+for img_pdf_ocr.py, which is the biggest part
+
 * i/o and cpu heavy, ram not so much
 * 2 vCores and 4gb of ram will result in process crashing
 * past 4 vCores it doesn't seem to effect anything, there isn't much going on in parallel
