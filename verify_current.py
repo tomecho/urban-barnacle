@@ -32,7 +32,7 @@ def write_data(result_array):
 def read_ocr_table(tbl_name):
     print 'reading from database {}'.format(tbl_name)
     with sqlite3.connect('output.db') as conn:
-        cursor = conn.execute("select property_id, cash, source_location from [{}] where cast(cash as real) > 1000".format(tbl_name))
+        cursor = conn.execute("select property_id, cash, better_source_location from [{}] where cast(cash as real) > 1000".format(tbl_name))
         return cursor.fetchall()
 
 def throttle_translation(time_diff, request_count = 1):
