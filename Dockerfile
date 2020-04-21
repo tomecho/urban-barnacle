@@ -8,6 +8,6 @@ RUN pipenv install
 
 COPY . .
 RUN cp -r ./etc/* /etc
-#RUN bash ./install_geckodriver.sh
+RUN bash ./install_geckodriver.sh
 
 CMD BASH
