@@ -8,8 +8,8 @@ def make_relative_absolute(relative_file, page):
         'third': 2,
         'fourth': 3,
         'fifth': 4,
-        'sixth': 4,
-        'seventh': 4,
+        'sixth': 5,
+        'seventh': 6,
     }
     offset_factor = next(offset_factors[file_part] for file_part in offset_factors.keys() if (file_part in relative_file))
     return page+(50000*offset_factor)
