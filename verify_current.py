@@ -46,7 +46,7 @@ def throttle_translation(time_diff, request_count = 1):
 
 def print_progress_str(action,pct):
     pct = pct * 100 # should start out as 0 - 1 float
-    print action + ' ' + str(pct) + '% [' + (u"\u2588"*int(pct)) + (' ' * (100-int(pct))) + ']' + ' ' * 20 +'\r',
+    print action + ' ' + str(pct) + '% [' + (u"\u2588".encode("utf-8")*int(pct)) + (' ' * (100-int(pct))) + ']' + ' ' * 20 +'\r',
 
 def translate_property(web, ocr_property):
     property_id_field = web.find_element_by_id('PropertyID')
