@@ -25,7 +25,7 @@ with sqlite3.connect(argv[1]) as conn:
     num_processed = 0
 
     cur = conn.cursor()
-    cur.execute('select property_id, source_location from [' + argv[2] + ']')
+    cur.execute('select property_id, source_location, id from [' + argv[2] + ']')
 
     for row in cur:
         source_location = row[1] # file.pdf:page:line
@@ -37,7 +37,7 @@ with sqlite3.connect(argv[1]) as conn:
         # better_source_location = "{}:{}:{}".format(better_source_location, absolute_page, line)
         better_source_location = make_absolute_relative(absolute_page, line)
         
-        conn.execute('update [' + argv[2] + '] set better_source_location = ? where property_id = ?', [better_source_location, row[0]])
+        conn.execute('update [' + argv[2] + '] set better_source_location = ? where id = ?', [better_source_location, row[2]])
         conn.commit()
         if num_processed % 100 == 0: # printing to screen is i/o heavy, only do it every so often
             print(num_processed / total_records, end = '\r')
